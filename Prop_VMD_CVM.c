@@ -2208,6 +2208,7 @@ static const char __pyx_k_Np[] = "Np";
 static const char __pyx_k_Pf[] = "Pf";
 static const char __pyx_k_id[] = "id";
 static const char __pyx_k_np[] = "np";
+static const char __pyx_k_VMD[] = "VMD";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_obj[] = "obj";
 static const char __pyx_k_pts[] = "pts";
@@ -2270,7 +2271,6 @@ static const char __pyx_k_enumerate[] = "enumerate";
 static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_IndexError[] = "IndexError";
-static const char __pyx_k_VMD_python[] = "VMD_python";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
@@ -2346,7 +2346,7 @@ static PyObject *__pyx_n_s_Prop_VMD_CVM;
 static PyObject *__pyx_kp_s_Prop_VMD_CVM_pyx;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
-static PyObject *__pyx_n_s_VMD_python;
+static PyObject *__pyx_n_s_VMD;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_n_s_View_MemoryView;
 static PyObject *__pyx_n_s_a;
@@ -17785,7 +17785,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Prop_VMD_CVM_pyx, __pyx_k_Prop_VMD_CVM_pyx, sizeof(__pyx_k_Prop_VMD_CVM_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
-  {&__pyx_n_s_VMD_python, __pyx_k_VMD_python, sizeof(__pyx_k_VMD_python), 0, 0, 1, 1},
+  {&__pyx_n_s_VMD, __pyx_k_VMD, sizeof(__pyx_k_VMD), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_n_s_View_MemoryView, __pyx_k_View_MemoryView, sizeof(__pyx_k_View_MemoryView), 0, 0, 1, 1},
   {&__pyx_n_s_a, __pyx_k_a, sizeof(__pyx_k_a), 0, 0, 1, 1},
@@ -18580,7 +18580,7 @@ if (!__Pyx_RefNanny) {
   /* "Prop_VMD_CVM.pyx":4
  * cimport numpy as np
  * 
- * from VMD_python import vmd             # <<<<<<<<<<<<<<
+ * from VMD import vmd             # <<<<<<<<<<<<<<
  * 
  * DTYPE = np.float64
  */
@@ -18589,7 +18589,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_n_s_vmd);
   __Pyx_GIVEREF(__pyx_n_s_vmd);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_vmd);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_VMD_python, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_VMD, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_vmd); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4, __pyx_L1_error)
@@ -18599,7 +18599,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "Prop_VMD_CVM.pyx":6
- * from VMD_python import vmd
+ * from VMD import vmd
  * 
  * DTYPE = np.float64             # <<<<<<<<<<<<<<
  * ctypedef np.float64_t DTYPE_t

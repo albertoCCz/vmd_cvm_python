@@ -7,7 +7,7 @@ DTYPE_complex = np.complex
 ctypedef np.float64_t DTYPE_t
 ctypedef np.complex_t DTYPE_complex_t
 
-def vmd(signal, alpha, tau, size_t K, DC, init, tol):
+def vmd(signal, alpha, tau, K, DC, init, tol):
     """This function implements the Variational
     Mode Decomposition algorithm.
 
@@ -44,17 +44,18 @@ def vmd(signal, alpha, tau, size_t K, DC, init, tol):
     omega : array_like 2D
         estimated mode center-frequencies
     """
+
     # Preparations
     # ------------
 
     # Period and sampling frequency of input signal
     cdef size_t save_T = len(signal)
     cdef DTYPE_t fs = 1 / save_T
-
+    
     # Extend the signal by mirroring
     cdef size_t T = save_T
     cdef DTYPE_t[:] f_mirror = np.empty(shape=2*T, dtype=DTYPE)
-    f_mirror[:T//2]       = np.flip(signal[:T//2])
+    f_mirror[:T//2]      = np.flip(signal[:T//2])
     f_mirror[T//2:3*T//2] = signal
     f_mirror[3*T//2:]     = np.flip(signal[T//2:])
     cdef DTYPE_t[:] f     = f_mirror

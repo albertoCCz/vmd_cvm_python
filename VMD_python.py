@@ -137,8 +137,8 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
         uDiff = eps
         for i in range(K):
             uDiff += 1/T * \
-                     (u_hat_plus[n, :, i] - u_hat_plus[n-1, :, i]) * \
-                     (u_hat_plus[n, :, i] - u_hat_plus[n-1, :, i]).transpose()
+                     sum((u_hat_plus[n, :, i] - u_hat_plus[n-1, :, i]) * \
+                         (u_hat_plus[n, :, i] - u_hat_plus[n-1, :, i]).transpose())
 
         uDiff = np.abs(uDiff)
 

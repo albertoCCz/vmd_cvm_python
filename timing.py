@@ -57,6 +57,8 @@ py_cdf = f"cdfcalc_python({x0}, {disn}, {ind})"
 print("Cython", timeit.timeit(stmt=cy_cdf, setup=import_cy_module, number=10000))
 print("Python", timeit.timeit(stmt=py_cdf, setup=import_py_module, number=10000))
 """
+
+"""ecdf
 import_cy_module = "from ecdf import ecdf"
 import_py_module = "from ecdf_python import ecdf as ecdf_python"
 
@@ -67,3 +69,52 @@ py_cdf = f"ecdf_python({data})"
 
 print("Cython", timeit.timeit(stmt=cy_cdf, setup=import_cy_module, number=10000))
 print("Python", timeit.timeit(stmt=py_cdf, setup=import_py_module, number=10000))
+
+"""
+
+import xarray as xr
+import numpy as np
+
+from VMD import vmd
+from VMD_python import vmd as vmd_python
+
+import time
+
+# Some sample parameters for VMD
+f = xr.load_dataset('Data/2015_Granada_Noisy.nc').beta_mean.values[0]    # Noisy signal
+alpha = 2000      # moderate badwidth constraint
+tau   = 0         # noise-tolerance (no strict fidelity enforcement)
+NIMF  = 10        # IMFs to consider
+DC    = 0         # no DC part imposed
+init  = 1         # initialize omegas uniformly
+tol   = 1e-7
+
+# Timing Cython
+start_cy = time.time()
+x, y, z = vmd(f, alpha, tau, NIMF, DC, init, tol)
+end_cy = time.time()
+
+# Timing Python
+start_py = time.time()
+x_py, y_py, z_py = vmd_python(f, alpha, tau, NIMF, DC, init, tol)
+end_py = time.time()
+
+# text = """
+# # Some sample parameters for VMD
+# f = xr.load_dataset('Data/2015_Granada_Noisy.nc').beta_mean.values[0]    # Noisy signal
+# alpha = 2000      # moderate badwidth constraint
+# tau   = 0         # noise-tolerance (no strict fidelity enforcement)
+# NIMF  = 10        # IMFs to consider
+# DC    = 0         # no DC part imposed
+# init  = 1         # initialize omegas uniformly
+# tol   = 1e-7
+# """
+
+# import_cy_module = f"import xarray as xr; from VMD import vmd; import numpy as np; {text}"
+# import_py_module = f"import xarray as xr; from VMD_python import vmd as vmd_python; import numpy as np; {text}"
+
+# cy_vmd = "vmd(f, alpha, tau, NIMF, DC, init, tol)"
+# py_vmd = "vmd_python(f, alpha, tau, NIMF, DC, init, tol)"
+
+# print("Cython", timeit.timeit(stmt=cy_vmd, setup=import_cy_module, number=100))
+# print("Python", timeit.timeit(stmt=py_vmd, setup=import_py_module, number=100))

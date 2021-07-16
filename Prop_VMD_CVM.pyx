@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 
-from VMD_python import vmd
+from VMD import vmd
 
 DTYPE = np.float64
 ctypedef np.float64_t DTYPE_t
