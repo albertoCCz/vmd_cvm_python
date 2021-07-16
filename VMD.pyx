@@ -115,10 +115,67 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
             sum_uk[i] += u_hat_plus[n, i, K-1] - u_hat_plus[n, i, 0]
         
         # Update spectrum of first mode through Wiener filter of residuals
-        fu_hat_plus[n+1, i, k] = (f_hat_plus - sum_uk - lambda_hat[n, :]/2) \
+        u_hat_plus[n+1, i, k] = (f_hat_plus - sum_uk - lambda_hat[n, :]/2) \
                                  / (1 + Alpha[k] * (freqs - omega_plus[n, k])**2)
 
         # Update first omega if not held at 0
         if not DC:
             omega_plus[n+1, k] = ((freqs[T//2:T]) * np.matrix(np.abs(u_hat_plus[n+1, T//2:T, k])**2).H) \
                                  / np.sum(np.abs(u_hat_plus[n+1, T//2:T, k])**2)
+
+        # Update of any other mode
+        for k in range(1, K):
+            # Accumulator
+            sum_uk += u_hat_plus[n+1, :, k-1] - u_hat_plus[n, :, k]
+        
+        # mode spectrum
+            u_hat_plus[n+1, :, k] = (f_hat_plus - sum_uk - lambda_hat[n, :]/2) \
+                                    / (1 + Alpha[k] * (freqs - omega_plus[n, k])**2)
+
+        # Center frequencies
+            omega_plus[n+1, k] = (freqs[T//2:T] * np.matrix((np.abs(u_hat_plus[n+1, T//2:T, k]))**2).H) \
+                                 / np.sum(np.abs(u_hat_plus[n+1, T//2:T, k])**2)
+        
+        # Dual ascent
+        lambda_hat[n+1, :] = lambda_hat[n, :] + tau * (u_hat_plus[n+1, :, :].sum(axis=1) - f_hat_plus)
+
+        # Loop counter
+        n += 1
+
+        # Converged yet?
+        uDiff = eps
+        for i in range(K):
+            uDiff += 1/T * (u_hat_plus[n, :, i] - u_hat_plus[n-1, :, i]) \
+                     * np.matrix((u_hat_plus[n, :, i] - u_hat_plus[n-1, :, i]).conjugate()).H
+
+        uDiff = np.abs(uDiff)
+
+    # Postprocessing and cleanup
+    # --------------------------
+
+    # Discard empty space if converged early
+    N = min(N, n+1)
+    cdef DTYPE_t[:, :] omega = omega_plus[:N, :]
+
+    # Signal reconstruction
+    def DTYPE_complex_t[:, :] u_hat = np.zeros((T, K), dtype=DTYPE_complex)
+    u_hat[T//2:T, :]   = np.squeeze(u_hat_plus[N-1, T//2:T, :])
+    u_hat[1:T//2+1, :] = np.flip(np.squeeze(u_hat_plus[N-1, T//2:T, :].conjugate()))
+    u_hat[0, :]        = u_hat[-1, :].conjugate()
+
+    cdef DTYPE[:, :] u = np.zeros((K, len(t)))
+
+    for k in range(K):
+        u[k, :] = np.real(np.fft.ifft(np.fft.ifftshift(u_hat[:, k])))
+
+    # Remove mirror part
+    u = u[:, T//4:3*T//4]
+
+    # Recompute spectrum
+    del u_hat
+    cdef DTYPE_complex_t[:, :] u_hat = np.empty(shape=(u.shape[1], K), dtype=DTYPE_complex)
+    for k in range(K):
+        u_hat[:, k] = np.matrix(np.fft.fftshift(np.fft.fft(u[k, :]))).H.flatten()
+
+
+    return u, u_hat, omega
