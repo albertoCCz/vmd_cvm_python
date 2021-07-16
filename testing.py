@@ -50,9 +50,23 @@ print("Python", cdfcalc_python(x, disn, ind))
 """
 
 """ecdf
-"""
 from ecdf import ecdf
 from ecdf_python import ecdf as ecdf_python
+
+# Check results
+array = [101, 118, 121, 103, 142, 111, 119, 122, 128, 112, 117,157]
+
+y, x     = ecdf(array)
+y_p, x_p = ecdf_python(array)
+
+print("Cython\n", f"\nx: {list(x)}\ny: {list(y)}")
+print("\nPython\n", f"\nx: {x_p}\ny: {y_p}")
+"""
+
+"""VMD
+"""
+from VMD import vmd
+from VMD_python import vmd as vmd_python
 
 # Check results
 array = [101, 118, 121, 103, 142, 111, 119, 122, 128, 112, 117,157]

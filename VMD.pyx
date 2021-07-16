@@ -7,7 +7,7 @@ DTYPE_complex = np.complex
 ctypedef np.float64_t DTYPE_t
 ctypedef np.complex_t DTYPE_complex_t
 
-def vmd(signal, alpha, tau, K, DC, init, tol):
+def vmd(signal, alpha, tau, size_t K, DC, init, tol):
     """This function implements the Variational
     Mode Decomposition algorithm.
 
@@ -81,7 +81,7 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     # Construct and center f_hat
     cdef DTYPE_complex_t[:] f_hat      = np.fft.fftshift(np.fft.fft(np.asarray(f, dtype=DTYPE))).astype(DTYPE_complex)
     cdef DTYPE_complex_t[:] f_hat_plus = f_hat
-    f_hat_plus[:T//2]                  = 0
+    f_hat_plus[:T//2]                  = np.zeros(T//2, dtype=DTYPE_complex)
 
     # Matrix keeping track of every iterant // could be discarded for mem
     cdef DTYPE_complex_t[:, :, :] u_hat_plus =  np.zeros((N, len_freqs, K), dtype=np.complex)
@@ -103,20 +103,26 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     cdef DTYPE_t            eps    = np.spacing(DTYPE(1.0))                    # distance from 1.0 to the next largest double-precision number.
     cdef DTYPE_t            uDiff  = tol + eps                                 # update step
     cdef size_t             n      = 0                                         # loop counter
+    cdef size_t             k      = 0
     cdef DTYPE_complex_t[:] sum_uk = np.zeros(len_freqs, dtype=DTYPE_complex)  # accumulator
+    cdef DTYPE_t[:]         temp   = np.empty(len_freqs, dtype=DTYPE)
+    cdef DTYPE_complex_t[:] temp2  = np.empty(len_freqs, dtype=DTYPE_complex)
 
     # Main loop for iterative updates
     # -------------------------------
 
     while (uDiff > tol and n < N):
         # Update first mode accumulator
-        cdef size_t k = 0
-        for i in range(len_freqs):
-            sum_uk[i] += u_hat_plus[n, i, K-1] - u_hat_plus[n, i, 0]
+        sum_uk = (np.real(sum_uk) + np.real(u_hat_plus[n, :, K-1]) - np.real(u_hat_plus[n, :, 0])) + \
+                 (np.imag(sum_uk) + np.imag(u_hat_plus[n, :, K-1]) - np.imag(u_hat_plus[n, :, 0])) * 1j
         
         # Update spectrum of first mode through Wiener filter of residuals
-        u_hat_plus[n+1, i, k] = (f_hat_plus - sum_uk - lambda_hat[n, :]/2) \
-                                 / (1 + Alpha[k] * (freqs - omega_plus[n, k])**2)
+        for i in range(len_freqs):
+            temp[i] = 1 + Alpha[k] * (freqs[i] - omega_plus[n, k])**2
+        
+        u_hat_plus[n+1, i, k] = ((np.real(f_hat_plus) - np.real(sum_uk) - np.real(lambda_hat[n, :])/2) + \
+                                 (np.imag(f_hat_plus) - np.imag(sum_uk) - np.imag(lambda_hat[n, :])/2) * 1j) \
+                                / temp
 
         # Update first omega if not held at 0
         if not DC:
@@ -126,13 +132,18 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
         # Update of any other mode
         for k in range(1, K):
             # Accumulator
-            sum_uk += u_hat_plus[n+1, :, k-1] - u_hat_plus[n, :, k]
+            sum_uk += (np.real(u_hat_plus[n+1, :, k-1]) - np.real(u_hat_plus[n, :, k])) + \
+                      (np.imag(u_hat_plus[n+1, :, k-1]) - np.imag(u_hat_plus[n, :, k])) * 1j
         
-        # mode spectrum
-            u_hat_plus[n+1, :, k] = (f_hat_plus - sum_uk - lambda_hat[n, :]/2) \
-                                    / (1 + Alpha[k] * (freqs - omega_plus[n, k])**2)
+            # mode spectrum
+            for i in range(len_freqs):
+                temp[i] = 1 + Alpha[k] * (freqs[i] - omega_plus[n, k])**2
 
-        # Center frequencies
+            u_hat_plus[n+1, :, k] = ((np.real(f_hat_plus) - np.real(sum_uk) - np.real(lambda_hat[n, :])/2) + \
+                                     (np.imag(f_hat_plus) - np.imag(sum_uk) - np.imag(lambda_hat[n, :])/2) * 1j) \
+                                    / temp
+
+            # Center frequencies
             omega_plus[n+1, k] = (freqs[T//2:T] * np.matrix((np.abs(u_hat_plus[n+1, T//2:T, k]))**2).H) \
                                  / np.sum(np.abs(u_hat_plus[n+1, T//2:T, k])**2)
         
@@ -145,8 +156,9 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
         # Converged yet?
         uDiff = eps
         for i in range(K):
-            uDiff += 1/T * (u_hat_plus[n, :, i] - u_hat_plus[n-1, :, i]) \
-                     * np.matrix((u_hat_plus[n, :, i] - u_hat_plus[n-1, :, i]).conjugate()).H
+            temp2 = (np.real(u_hat_plus[n, :, i]) - np.real(u_hat_plus[n-1, :, i])) + \
+                    (np.imag(u_hat_plus[n, :, i]) - np.imag(u_hat_plus[n-1, :, i])) * 1j
+            uDiff += 1/T * np.sum(temp2 * temp2.transpose())
 
         uDiff = np.abs(uDiff)
 
@@ -158,12 +170,12 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     cdef DTYPE_t[:, :] omega = omega_plus[:N, :]
 
     # Signal reconstruction
-    def DTYPE_complex_t[:, :] u_hat = np.zeros((T, K), dtype=DTYPE_complex)
+    cdef DTYPE_complex_t[:, :] u_hat = np.zeros((T, K), dtype=DTYPE_complex)
     u_hat[T//2:T, :]   = np.squeeze(u_hat_plus[N-1, T//2:T, :])
     u_hat[1:T//2+1, :] = np.flip(np.squeeze(u_hat_plus[N-1, T//2:T, :].conjugate()))
     u_hat[0, :]        = u_hat[-1, :].conjugate()
 
-    cdef DTYPE[:, :] u = np.zeros((K, len(t)))
+    cdef DTYPE_t[:, :] u = np.zeros((K, len(t)))
 
     for k in range(K):
         u[k, :] = np.real(np.fft.ifft(np.fft.ifftshift(u_hat[:, k])))
@@ -173,9 +185,9 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
 
     # Recompute spectrum
     del u_hat
-    cdef DTYPE_complex_t[:, :] u_hat = np.empty(shape=(u.shape[1], K), dtype=DTYPE_complex)
+    cdef DTYPE_complex_t[:, :] u_hat_ = np.empty(shape=(u.shape[1], K), dtype=DTYPE_complex)
     for k in range(K):
-        u_hat[:, k] = np.matrix(np.fft.fftshift(np.fft.fft(u[k, :]))).H.flatten()
+        u_hat_[:, k] = np.matrix(np.fft.fftshift(np.fft.fft(u[k, :]))).H.flatten()
 
 
-    return u, u_hat, omega
+    return u, u_hat_, omega
