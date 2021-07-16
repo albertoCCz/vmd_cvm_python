@@ -65,6 +65,7 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
 
     # Spectral Domain discretization
     cdef DTYPE_t[:] freqs = np.empty(len(t), dtype=DTYPE)
+    cdef size_t len_freqs = len(freqs)
     cdef size_t i
     for i in range(len(t)):
         freqs[i] = t[i] - 0.5 - 1/T
@@ -83,7 +84,7 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     f_hat_plus[:T//2]                  = 0
 
     # Matrix keeping track of every iterant // could be discarded for mem
-    cdef DTYPE_complex_t[:, :, :] u_hat_plus =  np.zeros((N, len(freqs), K), dtype=np.complex)
+    cdef DTYPE_complex_t[:, :, :] u_hat_plus =  np.zeros((N, len_freqs, K), dtype=np.complex)
 
     # Initialization of omega_k
     cdef DTYPE_t[:, :] omega_plus = np.zeros((N, K), dtype=np.float64)
@@ -92,4 +93,32 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
             omega_plus[0, i] = (0.5/K) * i
     elif init == 2:
         omega_plus[0, :] = np.sort(np.exp(np.log(fs) + (np.log(0.5) - np.log(fs)) * np.random.random(K))).astype(DTYPE)
+    else:
+        omega_plus[0, 0] = 0.0
+
+    # Start with empty dual variables
+    cdef DTYPE_complex_t[:, :] lambda_hat = np.zeros((N, len_freqs), dtype=DTYPE_complex)
+
+    # Other inits
+    cdef DTYPE_t            eps    = np.spacing(DTYPE(1.0))                    # distance from 1.0 to the next largest double-precision number.
+    cdef DTYPE_t            uDiff  = tol + eps                                 # update step
+    cdef size_t             n      = 0                                         # loop counter
+    cdef DTYPE_complex_t[:] sum_uk = np.zeros(len_freqs, dtype=DTYPE_complex)  # accumulator
+
+    # Main loop for iterative updates
+    # -------------------------------
+
+    while (uDiff > tol and n < N):
+        # Update first mode accumulator
+        cdef size_t k = 0
+        for i in range(len_freqs):
+            sum_uk[i] += u_hat_plus[n, i, K-1] - u_hat_plus[n, i, 0]
         
+        # Update spectrum of first mode through Wiener filter of residuals
+        fu_hat_plus[n+1, i, k] = (f_hat_plus - sum_uk - lambda_hat[n, :]/2) \
+                                 / (1 + Alpha[k] * (freqs - omega_plus[n, k])**2)
+
+        # Update first omega if not held at 0
+        if not DC:
+            omega_plus[n+1, k] = ((freqs[T//2:T]) * np.matrix(np.abs(u_hat_plus[n+1, T//2:T, k])**2).H) \
+                                 / np.sum(np.abs(u_hat_plus[n+1, T//2:T, k])**2)
