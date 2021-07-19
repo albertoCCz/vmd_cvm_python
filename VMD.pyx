@@ -54,10 +54,13 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     
     # Extend the signal by mirroring
     cdef size_t T = save_T
+    cdef DTYPE_t[:] signal_  = signal
+    cdef DTYPE_t[:] signal_f = np.flip(signal)
     cdef DTYPE_t[:] f_mirror = np.empty(shape=2*T, dtype=DTYPE)
-    f_mirror[:T//2]      = np.flip(signal[:T//2])
-    f_mirror[T//2:3*T//2] = signal
-    f_mirror[3*T//2:]     = np.flip(signal[T//2:])
+
+    f_mirror[:T//2]       = signal_f[T//2:]
+    f_mirror[T//2:3*T//2] = signal_
+    f_mirror[3*T//2:]     = signal_f[:T//2]
     cdef DTYPE_t[:] f     = f_mirror
 
     # Time Domain 0 to T (of mirrored signal)
@@ -82,7 +85,7 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     # Construct and center f_hat
     cdef DTYPE_complex_t[:] f_hat      = np.fft.fftshift(np.fft.fft(np.asarray(f, dtype=DTYPE))).astype(DTYPE_complex)
     cdef DTYPE_complex_t[:] f_hat_plus = f_hat
-    f_hat_plus[:T//2]                  = np.zeros(T//2, dtype=DTYPE_complex)
+    f_hat_plus[:T//2]                  = DTYPE_complex_t(0)
 
     # Matrix keeping track of every iterant // could be discarded for mem
     cdef DTYPE_complex_t[:, :, :] u_hat_plus =  np.zeros((N, len_freqs, K), dtype=np.complex)
@@ -120,10 +123,8 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
         # Update spectrum of first mode through Wiener filter of residuals
         for i in range(len_freqs):
             temp[i] = 1 + Alpha[k] * (freqs[i] - omega_plus[n, k])**2
-        
-        u_hat_plus[n+1, i, k] = ((np.real(f_hat_plus) - np.real(sum_uk) - np.real(lambda_hat[n, :])/2) + \
-                                 (np.imag(f_hat_plus) - np.imag(sum_uk) - np.imag(lambda_hat[n, :])/2) * 1j) \
-                                / temp
+            u_hat_plus[n+1, i, k] = ((np.real(f_hat_plus[i]) - np.real(sum_uk[i]) - np.real(lambda_hat[n, i])/2) / temp[i] + \
+                                     (np.imag(f_hat_plus[i]) - np.imag(sum_uk[i]) - np.imag(lambda_hat[n, i])/2) / temp[i] * 1j)
 
         # Update first omega if not held at 0
         if not DC:
