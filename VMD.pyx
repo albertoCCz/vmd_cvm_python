@@ -112,6 +112,7 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     cdef DTYPE_t[:]         temp   = np.empty(len_freqs, dtype=DTYPE)
     cdef DTYPE_complex_t[:] temp2  = np.empty(len_freqs, dtype=DTYPE_complex)
     cdef DTYPE_complex_t[:] temp3  = np.empty(len_freqs, dtype=DTYPE_complex)
+    cdef size_t             j
 
     # Main loop for iterative updates
     # -------------------------------
@@ -160,8 +161,9 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
         # Converged yet?
         uDiff = eps
         for i in range(K):
-            temp2 = (np.real(u_hat_plus[n, :, i]) - np.real(u_hat_plus[n-1, :, i])) + \
-                    (np.imag(u_hat_plus[n, :, i]) - np.imag(u_hat_plus[n-1, :, i])) * 1j
+            for j in range(u_hat_plus.shape[1]):
+                temp2[j] = {'real': u_hat_plus[n, j, i].real - u_hat_plus[n-1, j, i].real,
+                            'imag': u_hat_plus[n, j, i].imag - u_hat_plus[n-1, j, i].imag}
             uDiff += 1/T * np.sum(temp2 * np.transpose(temp2))
 
         uDiff = np.abs(uDiff)
@@ -172,7 +174,7 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     # Discard empty space if converged early
     N = min(N, n+1)
     omega = omega_plus[:N, :]
-
+    
     # Signal reconstruction
     u_hat = np.zeros((T, K), dtype=DTYPE_complex)
     u_hat[T//2:T, :]   = np.squeeze(np.array(u_hat_plus[N-1, T//2:T, :]))

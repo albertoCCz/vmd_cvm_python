@@ -12,30 +12,30 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     Parameters
     ----------
     signal : array_like 1D
-        the time domain signal (1D) to be decomposed
+        Time domain signal (1D) to be decomposed
     alpha : float
-        the balancing parameter of the data-fidelity constraint
+        Balancing parameter of the data-fidelity constraint
     tau : float
-        time-step of the dual ascent ( pick 0 for noise-slack )
+        Time-step of the dual ascent ( pick 0 for noise-slack )
     K : int
-        the number of modes to be recovered
+        Number of modes to be recovered
     DC : boolean or {0, 1}
-        true if the first mode is put and kept at DC (0-freq)
+        True if the first mode is put and kept at DC (0-freq)
     init : {0, 1, 2}
         0 = all omegas start at 0
         1 = all omegas start uniformly distributed
         2 = all omegas initialized randomly
     tol : float
-        tolerance of convergence criterion; typically around 1e-6
+        Tolerance of convergence criterion; typically around 1e-6
     
     Returns
     -------
     u : array_like 2D
-        the collection of decomposed modes
+        The collection of decomposed modes
     u_hat : array_like 2D
-        spectra of the modes
+        Spectra of the modes
     omega : array_like 2D
-        estimated mode center-frequencies
+        Estimated mode center-frequencies
     """
     # Preparations
     # ------------
@@ -141,7 +141,6 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
                          (u_hat_plus[n, :, i] - u_hat_plus[n-1, :, i]).transpose())
 
         uDiff = np.abs(uDiff)
-
 
     # Postprocessing and cleanup
     # --------------------------

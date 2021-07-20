@@ -129,26 +129,26 @@ range_ = xr.load_dataset('Data/2015_Granada_Noisy.nc')['range']
 f = a
 
 # Proposed approach
-imf,   rec,   y   = Prop_VMD_CVM(a, f, win_len, NIMF, opt_Pfa, Np)
-imf_p, rec_p, y_p = Prop_VMD_CVM_python(a, f, win_len, NIMF, opt_Pfa, Np)
+imf,   imf_hat,   omega   = Prop_VMD_CVM(a, f, win_len, NIMF, opt_Pfa, Np)
+imf_p, imf_hat_p, omega_p = Prop_VMD_CVM_python(a, f, win_len, NIMF, opt_Pfa, Np)
 
 # Plot results
-fig, ax = plt.subplots(1, 2, figsize=(10, 6), sharey=True)
+# fig, ax = plt.subplots(1, 2, figsize=(10, 6), sharey=True)
 
-ax[0].plot(sum(imf), range_, color='cornflowerblue', linewidth=0.7, label='Cython')
-ax[0].set_xlabel('signal [arb. units]')
-ax[0].set_ylabel('range [m]')
-ax[0].set_title('Cython reconstruction')
-ax[0].grid()
+# ax[0].plot(sum(imf), range_, color='cornflowerblue', linewidth=0.7, label='Cython')
+# ax[0].set_xlabel('signal [arb. units]')
+# ax[0].set_ylabel('range [m]')
+# ax[0].set_title('Cython reconstruction')
+# ax[0].grid()
 
-ax[1].plot(sum(imf_p), range_, color='forestgreen', linewidth=0.7, label='Python')
-ax[1].set_xlabel('signal [arb. units]')
-ax[1].set_title('Python reconstruction')
-ax[1].grid()
+# ax[1].plot(sum(imf_p), range_, color='forestgreen', linewidth=0.7, label='Python')
+# ax[1].set_xlabel('signal [arb. units]')
+# ax[1].set_title('Python reconstruction')
+# ax[1].grid()
 
-plt.show()
+# plt.show()
 
 # Check results are the same
-# print(f"Are imfs the same: {sum(sum(imf == imf_p)) / (imf_p.shape[0] * imf_p.shape[1]) == True}")
-# print(f"Are recs the same: {sum(sum(rec == rec_p)) / (rec_p.shape[0] * rec_p.shape[1]) == True}")
-# print(f"Are ys the same:   {sum(sum(y == y_p))     / (y_p.shape[0]   * y_p.shape[1])   == True}")
+print(f"Are imfs the same: {imf.shape == imf_p.shape}")
+print(f"Are recs the same: {imf_hat.shape == imf_hat_p.shape}")
+print(f"Are ys the same:   {omega.shape == omega_p.shape}")
