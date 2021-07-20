@@ -112,6 +112,8 @@ import xarray as xr
 from Prop_VMD_CVM import Prop_VMD_CVM
 from Prop_VMD_CVM_python import Prop_VMD_CVM as Prop_VMD_CVM_python
 
+import matplotlib.pyplot as plt
+
 # Input parameter
 win_len = 32 # Window length
 NIMF    = 10 # IMFs to consider
@@ -122,15 +124,31 @@ opt_Pfa = np.exp(-np.arange(0, NIMF, 1))
 
 # Load signal
 a  = xr.load_dataset('Data/2015_Granada_Noisy.nc').beta_mean.values[0].astype(np.float64)
+range_ = xr.load_dataset('Data/2015_Granada_Noisy.nc')['range']
 
 f = a
 
 # Proposed approach
-imf, rec, y = Prop_VMD_CVM(a, f, win_len, NIMF, opt_Pfa, Np)
+imf,   rec,   y   = Prop_VMD_CVM(a, f, win_len, NIMF, opt_Pfa, Np)
 imf_p, rec_p, y_p = Prop_VMD_CVM_python(a, f, win_len, NIMF, opt_Pfa, Np)
 
+# Plot results
+fig, ax = plt.subplots(1, 2, figsize=(10, 6), sharey=True)
+
+ax[0].plot(sum(imf), range_, color='cornflowerblue', linewidth=0.7, label='Cython')
+ax[0].set_xlabel('signal [arb. units]')
+ax[0].set_ylabel('range [m]')
+ax[0].set_title('Cython reconstruction')
+ax[0].grid()
+
+ax[1].plot(sum(imf_p), range_, color='forestgreen', linewidth=0.7, label='Python')
+ax[1].set_xlabel('signal [arb. units]')
+ax[1].set_title('Python reconstruction')
+ax[1].grid()
+
+plt.show()
+
 # Check results are the same
-# print(f"Are imfs the same: {sum(sum(imf == imf_p))/(imf_p.shape[0] * imf_p.shape[1]) == True}")
-# print(f"Are recs the same: {sum(sum(rec == rec_p))/(rec_p.shape[0] * rec_p.shape[1]) == True}")
-# print(f"Are ys the same:   {sum(sum(y == y_p))/(y_p.shape[0] * y_p.shape[1]) == True}")
-print(imf_p)
+# print(f"Are imfs the same: {sum(sum(imf == imf_p)) / (imf_p.shape[0] * imf_p.shape[1]) == True}")
+# print(f"Are recs the same: {sum(sum(rec == rec_p)) / (rec_p.shape[0] * rec_p.shape[1]) == True}")
+# print(f"Are ys the same:   {sum(sum(y == y_p))     / (y_p.shape[0]   * y_p.shape[1])   == True}")
