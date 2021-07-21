@@ -31,7 +31,7 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     Returns
     -------
     u : array_like 2D
-        The collection of decomposed modes
+        Collection modes in which the signal has been decomposed
     u_hat : array_like 2D
         Spectra of the modes
     omega : array_like 2D
@@ -155,7 +155,7 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     u_hat[1:T//2+1, :] = np.flip(np.squeeze(u_hat_plus[N-1, T//2:T, :].conjugate()))
     u_hat[0, :]        = u_hat[-1, :].conjugate()
 
-    u = np.zeros((K, len(t)))
+    u = np.zeros((K, len(t)), dtype=np.float64)
 
     for k in range(K):
         u[k, :] = np.real(np.fft.ifft(np.fft.ifftshift(u_hat[:, k])))

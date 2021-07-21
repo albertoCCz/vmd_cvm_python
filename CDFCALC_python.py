@@ -3,17 +3,24 @@ import numpy as np
 def cdfcalc(x0, disn, ind):
     """
     This function computes the Cumulative Distribution
-    Function or CDF.
+    Function or CDF for a particular threshold t:
+
+    CDF(t) = 1/N * sum(y < t)
+
+    where y is the sample for which we are computing the CDF, N is
+    the length of y, and t is the threshold.
 
     Parameters
     ----------
-    x0 : list or (1-D) ndarray of double
+    x0 : array_like 1D
+        Sample for which we compute the CDF
     disn : double
+        CDF values of x0
     ind : double
 
     Returns
     -------
-    z : list or (1-D) ndarray of double
+    z : array_like 1D
     """
     x     = np.asarray(x0, dtype=np.float64)
     lx    = len(x)

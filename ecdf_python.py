@@ -12,9 +12,9 @@ def ecdf(array):
 
     Returns
     -------
-    y : ndarray
+    y : array_like 1D
         ECDF values evaluated at x
-    x : ndarray
+    x : array_like 1D
         ECDF evaluation points
     """
     len_array = len(array)

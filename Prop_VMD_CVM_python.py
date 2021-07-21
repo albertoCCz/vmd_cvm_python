@@ -1,10 +1,26 @@
 import numpy as np
+
 from VMD_python import vmd
+from ecdf_python import ecdf
+from CDFCALC_python import cdfcalc
+from CVM_python import cvm
+from THRESHVSPFA_python import threshvspfa
+
+import warnings
+warnings.filterwarnings("always", UserWarning)
+
 
 def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
     """
-    This function implements a modified version of
-    the VMD_CVM algorithm for signal denoising.
+    This function implements a slightly modified version
+    of the VMD_CVM algorithm for signal denoising.
+
+    See Also
+    --------
+    Original algorithm: 
+    Khuram Naveed, Muhammad Tahir Akhtar, Muhammad Faisal Siddiqui, Naveed ur Rehman,
+    "A statistical approach to signal denoising based on data-driven multiscale representation",
+    Digital Signal Processing, Vol. 108, pp. 102896, 2021.
 
     Parameters
     ----------
@@ -17,14 +33,18 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
     Pf : array_like 1D
         Posible probabilities of false activation
     Np : int
-        Number of 
+        Number of consecutive iterations that must detect for the detection to hold
     
-
+    Returns
+    -------
+    imf : array_like 2D
+        Collection of decomposed modes
+    rec : array_like 2D
+        Recovered signal on IMF level
+    sigrec : array_like 1D
+        Recovered signal
     """
-    f = noisy
-
-    pts = len(a)         # data length
-    sigma = np.std(a-f)  # Estimate total noise variance for normalising IMFs
+    pts = len(noisy)         # data length
 
     # Some sample parameters for VMD
     alpha = 2000  # moderate badwidth constraint
@@ -34,7 +54,64 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
     tol   = 1e-7
 
     # Variational mode decomposition of the noisy signal
-    imf1, imf_hat, omega = vmd(f, alpha, tau, NIMF, DC, init, tol)
+    imf, imf_hat, omega = vmd(noisy, alpha, tau, NIMF, DC, init, tol)
 
-    return imf1, imf_hat, omega
+    if imf.shape[0] < NIMF:
+        NIMF = imf.shape[0] - 1
+        warnings.warn("NIMF found to be less than the size of actual imf")
+
+    rec = np.zeros(shape=imf.shape, dtype=np.float64)
+
+    # Determining k'_2 index
+    # ----------------------
+    
+    # Compute distance between each mode and the estimated noisy ECD
+    Dist  = np.empty(shape=NIMF, dtype=np.float64)
+    tempx = np.empty(shape=imf.shape[1], dtype=np.float64)
+    nEdf, nInd = ecdf(noisy)
+    for imfcnt in range(NIMF):
+        tempx        = imf[imfcnt, :]
+        Edf, Ind     = ecdf(tempx)
+        z            = cdfcalc(np.sort(tempx), nEdf, nInd)
+        Dist[imfcnt] = cvm(z, pts)
+
+    D = np.abs(np.diff(Dist))
+    n = np.argmax(D)
+    while n <= 5:
+        D[n] = 0
+        n    = np.argmax(D)
+    
+    ni = 10 - n
+    if ni < 3:
+        ni = 3
+    
+    # Compute thresholds
+    # ------------------
+    imfvec = np.empty(shape=imf.shape[0]*imf.shape[1], dtype=np.float64)
+    imfvec = imf.flatten()
+
+    PfvThvec, disn_m, ind_m = threshvspfa(imfvec, N)
+
+    # Detection of signal/noisy coefficients on modes containing signal
+    # -----------------------------------------------------------------
+    booln = np.zeros(shape=imf.shape[2], dtype=np.float64)
+    for imfcnt in range(NIMF-3):
+        TH = np.transpose(PfvThvec[0, :])
+        PF = np.transpose(PfvThvec[1, :])
+        temp = imf[imfcnt, :]     # Current IMF values
+        indpf = np.argmin(np.abs(Pf[imfcnt] - PF))    # Matches the optimal Pfa calulated for current IMF with available PFAs
+
+        thresh = TH[indpf]
+
+        # Signal/noise discrimination in each window
+        for jj in range(N):
+
+
+
+
+
+
+
+
+    return imf, imf_hat, omega
 
