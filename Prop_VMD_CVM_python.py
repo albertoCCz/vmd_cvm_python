@@ -6,9 +6,6 @@ from CDFCALC_python import cdfcalc
 from CVM_python import cvm
 from THRESHVSPFA_python import threshvspfa
 
-import warnings
-warnings.filterwarnings("always", UserWarning)
-
 
 def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
     """
@@ -58,7 +55,6 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
 
     if imf.shape[0] < NIMF:
         NIMF = imf.shape[0] - 1
-        warnings.warn("NIMF found to be less than the size of actual imf")
 
     rec = np.zeros(shape=imf.shape, dtype=np.float64)
 
@@ -95,37 +91,37 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
 
     # Detection of signal/noisy coefficients in modes containing signal
     # -----------------------------------------------------------------
-    booln = np.zeros(shape=imf.shape[1], dtype=np.int)
     for imfcnt in range(NIMF-3):
-        TH = np.transpose(PfvThvec[0, :])
-        PF = np.transpose(PfvThvec[1, :])
+        TH = PfvThvec[0, :]
+        PF = PfvThvec[1, :]
         temp = imf[imfcnt, :]                         # Current IMF values
         indpf = np.argmin(np.abs(Pf[imfcnt] - PF))    # Matches the optimal Pfa calulated for current IMF with available PFAs
 
         thresh = TH[indpf]
 
         # Signal/noise discrimination in each window
-        for jj in range(N//2, pts-N//2):
-            x = temp[(jj - N//2):(jj + N//2+1)]
+        booln = np.zeros(shape=temp.shape[0], dtype=np.int)
+        for jj in range(N, pts-N): #range(N//2, pts-N//2):
+            x = temp[(jj - N//2):(jj + N//2)]
             z = cdfcalc(np.sort(x), disn_m, ind_m)
-
+            
             test = cvm(z, N)    # CVM statistic
             if test > thresh:   # statistic > threshold: signal present
                 booln[jj] = 1
 
         # Consider detection only if it happens at least for length N; removes impulse-like noise! 
-        D = np.diff(np.asarray([0, booln, 0]))   # Find "edges"
-        bg = np.nonzero(D == 1)                  # Beginning of clustes of 1's (supossedly signal)
-        ed = np.nonzero(D == -1)                 # End of clusters
+        D = np.diff(np.asarray([0, booln, 0]))      # Find "edges"
+        bg = np.nonzero(D == 1)[0]                  # Beginning of clustes of 1's (supossedly signal)
+        ed = np.nonzero(D == -1)[0] - 1             # End of clusters
         for ii in range(len(bg)):
-            if (ed[ii] - bg[ii] < Np):           # If the length of cluster is too small we attribute detection to noise peak
-                booln[bg[ii]:ed[ii]] = 0         # No detection of signal there
+            if ((ed[ii] - bg[ii]) < Np):            # If the length of cluster is too small we attribute detection to noise peak
+                booln[bg[ii]:ed[ii]] = 0            # No detection of signal there
 
         # Effectively eliminite detected noise peaks
         rec[imfcnt, :] = temp * booln
 
         rec[0] = imf[0]
-        sigrec = np.sum(rec, axis=0).transpose()
+        sigrec = np.sum(rec, axis=0)
     
 
     return imf, rec, sigrec

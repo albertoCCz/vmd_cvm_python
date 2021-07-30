@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.core.arrayprint import dtype_is_implied
 
 from ecdf_python import ecdf
 from CDFCALC_python import cdfcalc
@@ -52,7 +51,7 @@ def threshvspfa(imfvec, N):
         count_detection = 0
 
         for litcount in range(windows):   # Loop through all windows
-            z = cdfcalc(np.sort(imfvec[0, N*litcount:N*(litcount+1)]), disn_m, ind_m)
+            z = cdfcalc(np.sort(imfvec[N*litcount:N*(litcount+1)]), disn_m, ind_m)
             
             test = cvm(z, N)     # Compute CVM distance between window ECDF and estimated ECDF for noise distribution
             if test < thresh:    # Count the number of times this distance is not close-fit for a particular threshold

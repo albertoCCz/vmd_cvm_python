@@ -8,19 +8,17 @@ def cvm(z, win_len):
     Parameters
     ----------
     z : array_like
-    win_len : 
+    win_len : int
 
     Returns
     -------
-    result : 
+    result : float
+        Cramer Von Mises statistical
+        distance
     """
     N = win_len
     I = np.arange(1, N+1, 1, dtype=np.int)
-
-    result = 0.0
-    for i in range(N):
-        result += (z - (2 * I[i] - 1)/2/N)**2
-
-    result += 1/12/N
     
+    result = np.sum((z - (2 * I - 1)/2/N)**2) + 1/12/N
+        
     return result

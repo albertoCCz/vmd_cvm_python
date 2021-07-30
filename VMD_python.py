@@ -59,7 +59,7 @@ def vmd(signal, alpha, tau, K, DC, init, tol):
     # Spectral Domain discretization
     freqs = t - 0.5 - 1/T
 
-    # Maximun number of iterations (if not converged yet, then it won't anyway)
+    # Maximum number of iterations (if not converged yet, then it won't anyway)
     N = 500
 
     # For future generalizations: individual alpha for each mode
