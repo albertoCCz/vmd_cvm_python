@@ -24,7 +24,6 @@ def cdfcalc(x0, disn, ind):
     """
     x     = np.asarray(x0, dtype=np.float64)
     lx    = len(x)
-    # ldisn = np.asarray(disn).flatten().size
 
     # Compute component's values of z
     z = np.empty(lx, dtype=np.float64)
@@ -37,16 +36,5 @@ def cdfcalc(x0, disn, ind):
             temp = np.max(opts)
 
         z[i] = temp
-
-        # for j in range(len(disn)):
-        #     if (ind[j] <= x[i]) == False:
-        #         temp = 0.0
-        #     else:
-        #         if ldisn > 1:
-        #             temp = max(disn)
-        #         else:
-        #             temp = disn
-
-        #     z[i] = temp
 
     return z

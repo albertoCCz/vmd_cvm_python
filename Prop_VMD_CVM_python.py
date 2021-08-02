@@ -1,10 +1,10 @@
 import numpy as np
 
-from VMD_python import vmd
-from ecdf_python import ecdf
 from CDFCALC_python import cdfcalc
 from CVM_python import cvm
+from ecdf_python import ecdf
 from THRESHVSPFA_python import threshvspfa
+from vmdpy import VMD as vmd
 
 
 def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
@@ -60,53 +60,52 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
 
     # Determining k'_2 index
     # ----------------------
-    
+
     # Compute distance between each mode and the estimated noisy ECD
     Dist  = np.empty(shape=NIMF, dtype=np.float64)
     tempx = np.empty(shape=imf.shape[1], dtype=np.float64)
     nEdf, nInd = ecdf(noisy)
     for imfcnt in range(NIMF):
         tempx        = imf[imfcnt, :]
-        # Edf, Ind     = ecdf(tempx)
         z            = cdfcalc(np.sort(tempx), nEdf, nInd)
         Dist[imfcnt] = cvm(z, pts)
 
     D = np.abs(np.diff(Dist))
     n = np.argmax(D)
-    while n <= 5:
+    while n <= NIMF/2:
         D[n] = 0
         n    = np.argmax(D)
     
-    ni = 10 - n
+    ni = NIMF - n
     if ni < 3:
         ni = 3
     
     # Compute thresholds
     # ------------------
     imfvec = np.empty(shape=imf.shape[0]*imf.shape[1], dtype=np.float64)
-    imfvec = imf.flatten()
+    imfvec = imf[NIMF-ni-1:, :].flatten()
 
     PfvThvec, disn_m, ind_m = threshvspfa(imfvec, N)
 
 
     # Detection of signal/noisy coefficients in modes containing signal
     # -----------------------------------------------------------------
-    for imfcnt in range(NIMF-3):
-        TH = PfvThvec[0, :]
-        PF = PfvThvec[1, :]
+    TH = PfvThvec[0, :]
+    PF = PfvThvec[1, :]
+    for imfcnt in range(NIMF-ni+1):
         temp = imf[imfcnt, :]                         # Current IMF values
         indpf = np.argmin(np.abs(Pf[imfcnt] - PF))    # Matches the optimal Pfa calulated for current IMF with available PFAs
 
-        thresh = TH[indpf]
+        thresh = TH[indpf]                            # Extract the threshold value for current IMF
 
         # Signal/noise discrimination in each window
         booln = np.zeros(shape=temp.shape[0], dtype=np.int)
-        for jj in range(N, pts-N): #range(N//2, pts-N//2):
+        for jj in range(N, pts-N):   #range(N//2, pts-N//2):
             x = temp[(jj - N//2):(jj + N//2)]
             z = cdfcalc(np.sort(x), disn_m, ind_m)
             
-            test = cvm(z, N)    # CVM statistic
-            if test > thresh:   # statistic > threshold: signal present
+            test = cvm(z, N)         # CVM statistic
+            if test > thresh:        # statistic > threshold: signal present
                 booln[jj] = 1
 
         # Consider detection only if it happens at least for length N; removes impulse-like noise! 

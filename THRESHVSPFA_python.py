@@ -37,33 +37,31 @@ def threshvspfa(imfvec, N):
 
     disn_m = np.mean(tv, axis=1)
     ind_m  = np.mean(ti, axis=1)
-     
+
     # Threshold versus Pfa curve estimation from rejected modes
     # ---------------------------------------------------------
     thresh_min = 0.001
     inc        = 0.001
     thresh_max = 20
-    threshvec  = np.arange(thresh_min, thresh_max, inc, dtype=np.float64)
-    pfavec     = np.zeros(shape=len(threshvec), dtype=np.float64)
+    threshvec  = np.arange(thresh_min, thresh_max+inc, inc, dtype=np.float64)
+    pfavec     = np.zeros(shape=threshvec.shape[0], dtype=np.float64)
 
-    i = 0
-    for thresh in threshvec:    # Loop through all candidate thresholds
-        count_detection = 0
+    # Pre-compute cvm for each window
+    tests = np.empty(shape=windows)
+    for litcount in range(windows):     # Loop through all windows
+        z = cdfcalc(np.sort(imfvec[N*litcount:N*(litcount+1)]), disn_m, ind_m)
+        
+        tests[litcount] = cvm(z, N)     # Compute CVM distance between window ECDF and estimated ECDF for noise distribution
 
-        for litcount in range(windows):   # Loop through all windows
-            z = cdfcalc(np.sort(imfvec[N*litcount:N*(litcount+1)]), disn_m, ind_m)
+    # Compute probability of false detection of signal for threshold value
+    for i, thresh in enumerate(threshvec):          # Loop through all candidate thresholds
+        count_detection = np.sum(tests > thresh)    # Count the number of times this distance is not close-fit for a particular threshold
             
-            test = cvm(z, N)     # Compute CVM distance between window ECDF and estimated ECDF for noise distribution
-            if test < thresh:    # Count the number of times this distance is not close-fit for a particular threshold
-                count_detection += 1
-            
-        Pfa = count_detection / (windows)    # Compute probability of false detection of signal
+        Pfa = count_detection / (windows)           # Probability of false detection
         pfavec[i] = Pfa
         
         if Pfa < 0.000005:       # Lower bound of Pfa for sufficiently good threshold value
             break
-    
-        i += 1
     
     PfvThvec = np.asarray([threshvec, pfavec], dtype=np.float64)
 
