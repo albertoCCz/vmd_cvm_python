@@ -2,7 +2,7 @@ import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
 
-from Prop_VMD_CVM_python import Prop_VMD_CVM
+from vmd_cvm_python.Prop_VMD_CVM_python import Prop_VMD_CVM
 
 # Input parameters
 win_len = 256
