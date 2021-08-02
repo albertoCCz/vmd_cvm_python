@@ -1,8 +1,8 @@
 import numpy as np
 
-from ecdf_python import ecdf
-from CDFCALC_python import cdfcalc
-from CVM_python import cvm
+from vmd_cvm_python.ecdf_python import ecdf
+from vmd_cvm_python.CDFCALC_python import cdfcalc
+from vmd_cvm_python.CVM_python import cvm
 
 def threshvspfa(imfvec, N):
     """
