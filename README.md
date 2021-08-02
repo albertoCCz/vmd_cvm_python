@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 from vmd_cvm_python.Prop_VMD_CVM_python import Prop_VMD_CVM
 ```
-In this example we are going to be using the Python version, so we import the package and the function with the "_python" ending. The `Prop_VMD_CVM` function executes all the algorithm at once, so that's all we need to import from this library in order to use this denoising method.
+In this example we are going to be using the Python version, so in the import we use the package and the function with the "_python" ending. The `Prop_VMD_CVM` function executes all the algorithm at once, so that's all we need to import from this library in order to use this denoising method.
 
 Then we fix the parameters for the function:
 ```python
