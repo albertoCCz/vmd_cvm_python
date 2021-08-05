@@ -50,16 +50,17 @@ def threshvspfa(imfvec, N):
     tests = np.empty(shape=windows)
     for litcount in range(windows):     # Loop through all windows
         z = cdfcalc(np.sort(imfvec[N*litcount:N*(litcount+1)]), disn_m, ind_m)
-        
         tests[litcount] = cvm(z, N)     # Compute CVM distance between window ECDF and estimated ECDF for noise distribution
 
     # Compute probability of false detection of signal for threshold value
     for i, thresh in enumerate(threshvec):          # Loop through all candidate thresholds
         count_detection = np.sum(tests > thresh)    # Count the number of times this distance is not close-fit for a particular threshold
             
-        Pfa = count_detection / (windows)           # Probability of false detection
+        Pfa = count_detection / windows           # Probability of false detection
         pfavec[i] = Pfa
         
+        print(f"\n Pfa python: {Pfa}")
+
         if Pfa < 0.000005:       # Lower bound of Pfa for sufficiently good threshold value
             break
     

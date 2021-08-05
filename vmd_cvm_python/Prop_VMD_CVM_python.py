@@ -41,7 +41,10 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
     sigrec : array_like 1D
         Recovered signal
     """
-    pts = len(noisy)  # data length
+    # Check noisy is a 1D array_like object
+    assert len(noisy.shape) == 1
+    
+    pts = noisy.shape[0]  # data length
 
     # Some sample parameters for VMD
     alpha = 2000  # moderate badwidth constraint
@@ -55,6 +58,7 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
 
     if imf.shape[0] < NIMF:
         NIMF = imf.shape[0] - 1
+        print('NIMF found to be less than the size of actual imf')
 
     rec = np.zeros(shape=imf.shape, dtype=np.float64)
 
@@ -82,23 +86,22 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
     
     # Compute thresholds
     # ------------------
-    imfvec = np.empty(shape=imf.shape[0]*imf.shape[1], dtype=np.float64)
+    imfvec = np.empty(shape=(imf.shape[0]-(NIMF-ni-1))*imf.shape[1], dtype=np.float64)
     imfvec = imf[NIMF-ni-1:, :].flatten()
 
     PfvThvec, disn_m, ind_m = threshvspfa(imfvec, N)
-
 
     # Detection of signal/noisy coefficients in modes containing signal
     # -----------------------------------------------------------------
     TH = PfvThvec[0, :]
     PF = PfvThvec[1, :]
     for imfcnt in range(NIMF-ni+1):
-        temp = imf[imfcnt, :]                         # Current IMF values
-        indpf = np.argmin(np.abs(Pf[imfcnt] - PF))    # Matches the optimal Pfa calulated for current IMF with available PFAs
-
+        temp   = imf[imfcnt, :]                       # Current IMF values
+        indpf  = np.argmin(np.abs(Pf[imfcnt] - PF))   # Matches the optimal Pfa calulated for current IMF with available PFAs
         thresh = TH[indpf]                            # Extract the threshold value for current IMF
 
         # Signal/noise discrimination in each window
+        print(indpf)
         booln = np.zeros(shape=temp.shape[0], dtype=np.int)
         for jj in range(N, pts-N):   #range(N//2, pts-N//2):
             x = temp[(jj - N//2):(jj + N//2)]
@@ -108,7 +111,7 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
             if test > thresh:        # statistic > threshold: signal present
                 booln[jj] = 1
 
-        # Consider detection only if it happens at least for length N; removes impulse-like noise! 
+        # Consider detection only if it happens at least for length N; removes impulse-like noise!
         D = np.diff(np.asarray([0, booln, 0]))      # Find "edges"
         bg = np.nonzero(D == 1)[0]                  # Beginning of clustes of 1's (supossedly signal)
         ed = np.nonzero(D == -1)[0] - 1             # End of clusters
@@ -116,11 +119,11 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
             if ((ed[ii] - bg[ii]) < Np):            # If the length of cluster is too small we attribute detection to noise peak
                 booln[bg[ii]:ed[ii]] = 0            # No detection of signal there
 
-        # Effectively eliminite detected noise peaks
+        # Effectively eliminate detected noise peaks
         rec[imfcnt, :] = temp * booln
 
-        rec[0] = imf[0]
-        sigrec = np.sum(rec, axis=0)
+    rec[0] = imf[0]
+    sigrec = np.sum(rec, axis=0)
     
-
+    
     return imf, rec, sigrec

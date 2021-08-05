@@ -14,9 +14,9 @@ def cdfcalc(x0, disn, ind):
     ----------
     x0 : array_like 1D
         Sample for which we compute the CDF
-    disn : double
+    disn : array_like 1D
         CDF values of x0
-    ind : double
+    ind : array_like 1D
 
     Returns
     -------
