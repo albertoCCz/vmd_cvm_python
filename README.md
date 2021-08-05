@@ -50,8 +50,12 @@ _, _, denoised = Prop_VMD_CVM(noisy, WIN_LEN, NIMF, opt_Pfa, NP)
 where we just passed the signal to denoise and the previously chosen parameters. The third returned element is actually the "denoised" signal. 
 
 We can apply some simple post-processing like a rolling window that takes the mean to, sometimes, improve the result.
+```python
+# Post-processing
+denoised = pd.Series(denoised).rolling(window=100, min_periods=1, center=True).mean()
+```
 
-Let's plot all the three signals to see the result.
+Let's plot all the three signals together to see the result.
 ```python
 # Plot noisy, original and denoised signals
 plt.subplots(1, figsize=(10,8))
