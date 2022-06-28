@@ -109,8 +109,8 @@ print(f"Are ys the same:   {sum(sum(y == y_p))/(y_p.shape[0] * y_p.shape[1]) == 
 import numpy as np
 import xarray as xr
 
-from Prop_VMD_CVM import Prop_VMD_CVM
-from Prop_VMD_CVM_python import Prop_VMD_CVM as Prop_VMD_CVM_python
+from vmd_cvm_cython.Prop_VMD_CVM import Prop_VMD_CVM
+from vmd_cvm_python.Prop_VMD_CVM_python import Prop_VMD_CVM as Prop_VMD_CVM_python
 
 import matplotlib.pyplot as plt
 
