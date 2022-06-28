@@ -20,8 +20,8 @@ else:
           "    python hello_world-vmd_cvm.py [OPTIONS]\n" + \
           "where\n" + \
           "    OPTIONS          Explanation\n" + \
-          "    -python          To run the example using the Python implementation\n" + \
-          "    -cython          To run the example using the Cython implementation\n", sep='')
+          "    -python          Run the example using the Python implementation\n" + \
+          "    -cython          Run the example using the Cython implementation\n", sep='')
     exit(1)
 
 # Input parameters
