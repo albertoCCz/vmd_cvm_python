@@ -7,6 +7,13 @@ Algorithm for signal denoising according to the VMD_CVM method, which uses the V
 + VMD:        K. Dragomiretskiy and D. Zosso, "Variational Mode Decomposition," in IEEE Transactions on Signal Processing, vol. 62, no. 3, pp. 531-544, Feb.1, 2014, doi: 10.1109/TSP.2013.2288675.
 
 ## Usage
+### Test dependencies running the `hello_world-vmd_cvm.py` example
+If you only just want to test if every thing is up and running, run:
+```cmd
+$ python hello_world-vmd_cvm.py -cython
+```
+You should see the [hello_world.png image](plots/hello_world.png). You can also run it with the `-python` flag, but it will be slower.
+
 ### Minimal usage example
 First we import the function `Prop_VMD_CVM` from the implementation module we want to use (the Python or Cython version):
 ```python
