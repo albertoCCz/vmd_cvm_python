@@ -3,3 +3,4 @@ env/
 __pycache__/*
 vmd_cvm_python/__pycache__/*
 vmd_cvm_cython/__pycache__/*
+data_exploration.py
