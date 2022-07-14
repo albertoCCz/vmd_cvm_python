@@ -6,14 +6,31 @@ Algorithm for signal denoising according to the VMD_CVM method, which uses the V
 + VMD_CVM:    Khuram Naveed, Muhammad Tahir Akhtar, Muhammad Faisal Siddiqui, Naveed ur Rehman, "A statistical approach to signal denoising based on data-driven multiscale representation", Digital Signal Processing, Vol. 108, pp. 102896, 2021.
 + VMD:        K. Dragomiretskiy and D. Zosso, "Variational Mode Decomposition," in IEEE Transactions on Signal Processing, vol. 62, no. 3, pp. 531-544, Feb.1, 2014, doi: 10.1109/TSP.2013.2288675.
 
-## Usage
-### Test dependencies running the `hello_world-vmd_cvm.py` example
-If you only just want to test if every thing is up and running, run:
+## Setup
 ```cmd
-$ python hello_world-vmd_cvm.py -cython
+$ git clone https://github.com/albertoCCz/vmd_cvm_python.git
+$ cd .\vmd_cvm_python\
+$ python -m venv env
+$ .\env\Scripts\activate
+$ python -m pip install -r requirements.txt
 ```
-You should see the [hello_world.png image](plots/hello_world.png). You can also run it with the `-python` flag, but it will be slower.
+(Linux users must change `\` for `/`, and `.\env\Scripts\activate` for `source env/bin/activate`).
+## Run examples
+- Example 1:
+    ```cmd
+    $ python hello_world-vmd_cvm.py -cython
+    ```
+    You should see the [hello_world.png image](plots/hello_world.png). You can also run it with the `-python` flag, but it will be slower.
+- Example 2:
+    ```cmd
+    $ python VMD_CVM_test.py
 
+
+    Input index of signal to denoise {0, 1, 2, ...}:
+    50
+    ```
+    You should see something similar to the [Signal_denoising.png image](plots/Signal_denoising.png).
+## Usage
 ### Minimal usage example
 First we import the function `Prop_VMD_CVM` from the implementation module we want to use (the Python or Cython version):
 ```python
