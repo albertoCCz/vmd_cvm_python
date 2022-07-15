@@ -53,7 +53,7 @@ if MODE == 'cython':
 denoised = pd.Series(denoised).rolling(window=100, min_periods=1, center=True).mean()
 
 # Plot noisy, original and denoised signals
-plt.subplots(1, figsize=(10,8))
+plt.subplots(1, figsize=(10,6))
 
 plt.plot(x, noisy,    linewidth=0.8, label='noisy', alpha=0.5)
 plt.plot(x, signal,   linewidth=0.8, label='original')
