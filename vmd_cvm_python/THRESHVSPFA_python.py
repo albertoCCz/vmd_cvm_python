@@ -58,8 +58,6 @@ def threshvspfa(imfvec, N):
             
         Pfa = count_detection / windows           # Probability of false detection
         pfavec[i] = Pfa
-        
-        print(f"\n Pfa python: {Pfa}")
 
         if Pfa < 0.000005:       # Lower bound of Pfa for sufficiently good threshold value
             break
