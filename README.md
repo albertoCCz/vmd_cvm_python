@@ -7,6 +7,8 @@ Algorithm for signal denoising according to the VMD_CVM method, which uses the V
 + VMD:        K. Dragomiretskiy and D. Zosso, "Variational Mode Decomposition," in IEEE Transactions on Signal Processing, vol. 62, no. 3, pp. 531-544, Feb.1, 2014, doi: 10.1109/TSP.2013.2288675.
 
 ## Setup
+This project works with Python version `3.8.2`.
+
 ```cmd
 $ git clone https://github.com/albertoCCz/vmd_cvm_python.git
 $ cd .\vmd_cvm_python\
