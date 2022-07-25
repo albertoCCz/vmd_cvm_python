@@ -101,7 +101,6 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
         thresh = TH[indpf]                            # Extract the threshold value for current IMF
 
         # Signal/noise discrimination in each window
-        print(indpf)
         booln = np.zeros(shape=temp.shape[0], dtype=np.int)
         for jj in range(N, pts-N):   #range(N//2, pts-N//2):
             x = temp[(jj - N//2):(jj + N//2)]
@@ -112,12 +111,12 @@ def Prop_VMD_CVM(noisy, N, NIMF, Pf, Np):
                 booln[jj] = 1
 
         # Consider detection only if it happens at least for length N; removes impulse-like noise!
-        D = np.diff(np.asarray([0, booln, 0]))      # Find "edges"
-        bg = np.nonzero(D == 1)[0]                  # Beginning of clustes of 1's (supossedly signal)
-        ed = np.nonzero(D == -1)[0] - 1             # End of clusters
+        D = np.diff(np.pad(booln, (1,1), 'constant', constant_values=(0,0)))      # Find "edges"
+        bg = np.nonzero(D == 1)[0]           # Beginning of clustes of 1's (supossedly signal)
+        ed = np.nonzero(D == -1)[0] - 1      # End of clusters
         for ii in range(len(bg)):
-            if ((ed[ii] - bg[ii]) < Np):            # If the length of cluster is too small we attribute detection to noise peak
-                booln[bg[ii]:ed[ii]] = 0            # No detection of signal there
+            if ((ed[ii] - bg[ii]) < Np):     # If the length of cluster is too small we attribute detection to noise peak
+                booln[bg[ii]:ed[ii]] = 0     # No detection of signal there
 
         # Effectively eliminate detected noise peaks
         rec[imfcnt, :] = temp * booln
