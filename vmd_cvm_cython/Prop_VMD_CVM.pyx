@@ -8,7 +8,7 @@ from vmd_cvm_cython.THRESHVSPFA import threshvspfa
 from vmdpy import VMD as vmd
 
 
-def Prop_VMD_CVM(noisy_py, N_py, NIMF_py, Pf_py, Np_py):
+cpdef Prop_VMD_CVM(noisy_py, N_py, NIMF_py, Pf_py, Np_py):
     """
     This function implements a slightly modified version
     of the VMD_CVM algorithm for signal denoising.
@@ -42,25 +42,25 @@ def Prop_VMD_CVM(noisy_py, N_py, NIMF_py, Pf_py, Np_py):
     sigrec : array_like 1D
         Recovered signal
     """
-    # Check array_like params have correct dimesionaly
+    # Check array-like params have correct dimesionaly
     assert len(noisy_py.shape) == 1 and \
            len(Pf_py.shape)    == 1
 
     # Params to C types
-    cdef np.float64_t[:]      noisy = noisy_py
-    cdef np.int_t             N     = N_py
-    cdef np.int_t             NIMF  = NIMF_py
-    cdef np.float64_t[:]      Pf    = Pf_py
-    cdef np.int_t             Np    = Np_py
+    cdef np.float64_t[:] noisy = noisy_py
+    cdef np.int_t        N     = N_py
+    cdef np.int_t        NIMF  = NIMF_py
+    cdef np.float64_t[:] Pf    = Pf_py
+    cdef np.int_t        Np    = Np_py
  
     cdef size_t pts = noisy.shape[0]  # data length
 
     # Some sample parameters for VMD
-    cdef np.int_t alpha        = 2000  # moderate badwidth constraint
-    cdef np.int_t tau          = 0     # noise-tolerance (no strict fidelity enforcement)
-    cdef np.int_t DC           = 0     # no DC part imposed
-    cdef np.int_t init         = 1     # initialize omegas uniformly
-    cdef np.float64_t tol      = 1e-7
+    cdef np.int_t     alpha = 2000  # moderate badwidth constraint
+    cdef np.int_t     tau   = 0     # noise-tolerance (no strict fidelity enforcement)
+    cdef np.int_t     DC    = 0     # no DC part imposed
+    cdef np.int_t     init  = 1     # initialize omegas uniformly
+    cdef np.float64_t tol   = 1e-7
 
     # Variational mode decomposition of the noisy signal
     cdef np.float64_t[:, :] imf
