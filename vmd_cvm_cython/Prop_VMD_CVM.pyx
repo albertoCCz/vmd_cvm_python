@@ -93,7 +93,8 @@ cpdef Prop_VMD_CVM(noisy_py, N_py, NIMF_py, Pf_py, Np_py):
     cdef np.int_t        n = np.argmax(D)
     while n <= NIMF/2.0:
         D[n] = 0.0
-        n    = np.argmax(D)
+        if np.argmax(D) == n: break
+        else: n = np.argmax(D)
 
     cdef np.int_t ni = NIMF - n
     if ni < 3:
