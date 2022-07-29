@@ -1,9 +1,16 @@
+.gitignore
 env/
+
 .vscode/
+
+build.ps1
 build/
+
 __pycache__/
 vmd_cvm_python/__pycache__/
 vmd_cvm_cython/__pycache__/
+
 vmd_cvm_cython/*.pyd
 vmd_cvm_cython/*.c
+
 data_exploration.py
