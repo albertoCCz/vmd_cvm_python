@@ -1,10 +1,10 @@
 import numpy as np
 cimport numpy as np
 
-from vmd_cvm_cython.CDFCALC import cdfcalc
-from vmd_cvm_cython.CVM import cvm
+from vmd_cvm_cython.cdfcalc import cdfcalc
+from vmd_cvm_cython.cvm import cvm
 from vmd_cvm_cython.ecdf import ecdf
-from vmd_cvm_cython.THRESHVSPFA import threshvspfa
+from vmd_cvm_cython.threshvspfa import threshvspfa
 from vmdpy import VMD as vmd
 
 
@@ -47,49 +47,48 @@ cpdef Prop_VMD_CVM(noisy_py, N_py, NIMF_py, Pf_py, Np_py):
            len(Pf_py.shape)    == 1
 
     # Params to C types
-    cdef np.float64_t[:] noisy = noisy_py
-    cdef np.int_t        N     = N_py
-    cdef np.int_t        NIMF  = NIMF_py
-    cdef np.float64_t[:] Pf    = Pf_py
-    cdef np.int_t        Np    = Np_py
+    cdef double[:] noisy = noisy_py
+    cdef np.int_t  N     = N_py
+    cdef size_t    NIMF  = NIMF_py
+    cdef double[:] Pf    = Pf_py
+    cdef np.int_t  Np    = Np_py
  
     cdef size_t pts = noisy.shape[0]  # data length
 
     # Some sample parameters for VMD
-    cdef np.int_t     alpha = 2000  # moderate badwidth constraint
-    cdef np.int_t     tau   = 0     # noise-tolerance (no strict fidelity enforcement)
-    cdef np.int_t     DC    = 0     # no DC part imposed
-    cdef np.int_t     init  = 1     # initialize omegas uniformly
-    cdef np.float64_t tol   = 1e-7
+    cdef double alpha = 2000  # moderate bandwidth constraint
+    cdef double tau   = 0     # noise-tolerance (no strict fidelity enforcement)
+    cdef size_t  DC   = 0     # no DC part imposed
+    cdef size_t init  = 1     # initialize omegas uniformly
+    cdef double tol   = 1e-7
 
     # Variational mode decomposition of the noisy signal
-    cdef np.float64_t[:, :] imf
-    imf, _, __ = vmd(noisy_py, alpha, tau, NIMF, DC, init, tol)
-    del _, __
+    cdef double[:, :] imf
+    imf = vmd(noisy_py, alpha, tau, NIMF, DC, init, tol)[0]
 
     if imf.shape[0] < NIMF:
         NIMF = imf.shape[0] - 1
         print('NIMF found to be less than the size of actual imf')
     
-    cdef np.float64_t[:, :] rec = np.zeros(shape=(imf.shape[0], imf.shape[1]), dtype=np.float64)
+    cdef double[:, :] rec = np.zeros(shape=(imf.shape[0], imf.shape[1]), dtype=np.float64)
 
     # Determining k'_2 index
     # ----------------------
 
     # Compute distance between each mode and the estimated noisy ECD
-    cdef np.float64_t[:] Dist  = np.empty(shape=NIMF, dtype=np.float64)
-    cdef np.float64_t[:] tempx = np.empty(shape=imf.shape[1], dtype=np.float64)
+    cdef double[:] Dist  = np.empty(shape=NIMF, dtype=np.float64)
+    cdef double[:] tempx = np.empty(shape=imf.shape[1], dtype=np.float64)
 
     nEdf, nInd = ecdf(noisy)
     
-    cdef np.float64_t[:] z
+    cdef double[:] z
     cdef size_t imfcnt
     for imfcnt in range(NIMF):
         tempx        = imf[imfcnt]
         z            = cdfcalc(np.sort(tempx), nEdf, nInd)
         Dist[imfcnt] = cvm(z, pts)
 
-    cdef np.float64_t[:] D = np.abs(np.diff(Dist))
+    cdef double[:] D = np.abs(np.diff(Dist))
     cdef np.int_t        n = np.argmax(D)
     while n <= NIMF/2.0:
         D[n] = 0.0
@@ -102,7 +101,7 @@ cpdef Prop_VMD_CVM(noisy_py, N_py, NIMF_py, Pf_py, Np_py):
 
     # Compute thresholds
     # ------------------
-    cdef np.float64_t[:] imfvec = np.empty(shape=(imf.shape[0]-(NIMF-ni-1))*imf.shape[1], dtype=np.float64)
+    cdef double[:] imfvec = np.empty(shape=(imf.shape[0]-(NIMF-ni-1))*imf.shape[1], dtype=np.float64)
     cdef size_t i, j
     for i in range(NIMF-ni-1, imf.shape[0]):
         for j in range(imf.shape[1]):
@@ -112,14 +111,14 @@ cpdef Prop_VMD_CVM(noisy_py, N_py, NIMF_py, Pf_py, Np_py):
 
     # Detection of signal/noisy coefficients in modes containing signal
     # -----------------------------------------------------------------
-    cdef np.float64_t[:] TH                        = PfvThvec[0, :]
-    cdef np.float64_t[:] PF                        = PfvThvec[1, :]
-    cdef np.float64_t[:] temp                      = np.empty(shape=imf.shape[1], dtype=np.float64)
-    cdef np.int_t        indpf
-    cdef np.float64_t    thresh, elem, min_, temp_
+    cdef double[:] TH                        = PfvThvec[0, :]
+    cdef double[:] PF                        = PfvThvec[1, :]
+    cdef double[:] temp                      = np.empty(shape=imf.shape[1], dtype=np.float64)
+    cdef np.int_t  indpf
+    cdef double    thresh, elem, min_, temp_
 
-    cdef np.float64_t[:] x      = np.empty(shape=2*(N//2), dtype=np.float64)
-    cdef np.float64_t    test
+    cdef double[:] x      = np.empty(shape=2*(N//2), dtype=np.float64)
+    cdef double    test
     cdef size_t          ii, jj
 
     cdef np.int_t[:] bg             # Beginning of clusters of 1's (supossedly signal)
@@ -161,7 +160,7 @@ cpdef Prop_VMD_CVM(noisy_py, N_py, NIMF_py, Pf_py, Np_py):
             rec[imfcnt, i] = temp[i] * booln[i]
         
     rec[0] = imf[0]
-    cdef np.float64_t[:] sigrec = np.sum(rec, axis=0)
+    cdef double[:] sigrec = np.sum(rec, axis=0)
 
 
     return imf, rec, sigrec
