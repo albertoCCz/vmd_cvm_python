@@ -4,24 +4,36 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-if len(sys.argv) == 1:
-    from vmd_cvm_python.Prop_VMD_CVM_python import Prop_VMD_CVM
-elif len(sys.argv) == 2:
-    if sys.argv[1] == '-python':
-        from vmd_cvm_python.Prop_VMD_CVM_python import Prop_VMD_CVM
-    elif sys.argv[1] == '-cython':
-        from vmd_cvm_cython.Prop_VMD_CVM import Prop_VMD_CVM
-    
-    # Implementation modo
-    MODE = sys.argv[1].lstrip('-')
-else:
-    print("[ERROR]: Wrong number of arguments passed.\n" + \
+def print_help(error_mssg):
+    print(f"[ERROR]: {error_mssg}\n" + \
           "Usage:\n" + \
           "    python hello_world-vmd_cvm.py [OPTIONS]\n" + \
           "where\n" + \
           "    OPTIONS          Explanation\n" + \
           "    -python          Run the example using the Python implementation\n" + \
           "    -cython          Run the example using the Cython implementation\n", sep='')
+
+if len(sys.argv) == 1:
+    from vmd_cvm_python.Prop_VMD_CVM_python import Prop_VMD_CVM
+    MODE = "cython"
+    print(f"\n[INFO]: Running in {MODE} mode by default. To see the options run with -help flag.\n")
+
+elif len(sys.argv) == 2:
+    if sys.argv[1] == '-python':
+        from vmd_cvm_python.Prop_VMD_CVM_python import Prop_VMD_CVM
+    elif sys.argv[1] == '-cython':
+        from vmd_cvm_cython.Prop_VMD_CVM import Prop_VMD_CVM
+    elif sys.argv[1] == '-help':
+        print_help()
+        exit(0)
+    else:
+        print_help("Wrong flag used.")
+        exit(1)
+    
+    # Implementation mode
+    MODE = sys.argv[1].lstrip('-')
+else:
+    print_help("Wrong number of arguments passed.")
     exit(1)
 
 # Input parameters
